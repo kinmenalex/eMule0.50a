@@ -2516,6 +2516,32 @@ uint32 CPartFile::Process(uint32 reducedownload, UINT icounter/*in percent*/)
 		m_nLastBufferFlushTime = dwCurTick;
 	}
 
+#if 126976
+	uint32 bufferTimeLimit = thePrefs.GetFileBufferTimeLimit();
+#define BUFFER_TIME_LIMIT	60000
+
+	if( bufferTimeLimit < BUFFER_TIME_LIMIT )
+		bufferTimeLimit = BUFFER_TIME_LIMIT;
+
+	uint32 bufferLimit = thePrefs.GetFileBufferSize();
+
+	if( theApp.m_nTotalBufferedData > thePrefs.GetTotalBufferLimit() )
+		bufferLimit = bufferLimit / 10 ;
+	
+	if ((m_nTotalBufferData > bufferLimit) || (dwCurTick > (m_nLastBufferFlushTime + bufferTimeLimit)))
+	{
+		if(m_nTotalBufferData > bufferLimit)
+			theApp.m_nDiskFlushes[1] ++;	// by Buffer
+		
+		if(m_nLastBufferFlushTime && dwCurTick > (m_nLastBufferFlushTime + bufferTimeLimit) && !m_BufferedData_list.IsEmpty())
+			theApp.m_nDiskFlushes[2] ++;	// by Time
+	
+		// Avoid flushing while copying preview file
+		if (!m_bPreviewing)
+			FlushBuffer();
+	}
+
+#else
 	// If buffer size exceeds limit, or if not written within time limit, flush data
 	if ((m_nTotalBufferData > thePrefs.GetFileBufferSize()) || (dwCurTick > (m_nLastBufferFlushTime + thePrefs.GetFileBufferTimeLimit())))
 	{
@@ -2523,6 +2549,7 @@ uint32 CPartFile::Process(uint32 reducedownload, UINT icounter/*in percent*/)
 		if (!m_bPreviewing)
 			FlushBuffer();
 	}
+#endif
 
 	datarate = 0;
 
@@ -3486,7 +3513,7 @@ void CPartFile::PerformFileCompleteEnd(DWORD dwResult)
 		thePrefs.Add2DownSessionCompletedFiles();
 		thePrefs.SaveCompletedDownloadsStat();
 
-		// 05-Jän-2004 [bc]: ed2k and Kad are already full of totally wrong and/or not properly attached meta data. Take
+		// 05-Jï¿½n-2004 [bc]: ed2k and Kad are already full of totally wrong and/or not properly attached meta data. Take
 		// the chance to clean any available meta data tags and provide only tags which were determined by us.
 		UpdateMetaDataTags();
 
@@ -4050,10 +4077,14 @@ void CPartFile::PreviewFile()
 		return;
 	}
 
+#if 126976
+	// always permits preview
+#else
 	if (!IsReadyForPreview()){
 		ASSERT( false );
 		return;
 	}
+#endif
 
 	if (thePrefs.IsMoviePreviewBackup()){
 		if (!CheckFileOpen(GetFilePath(), GetFileName()))
@@ -4801,6 +4832,9 @@ void CPartFile::FlushBuffer(bool forcewait, bool bForceICH, bool bNoAICH)
 			m_hpartfile.Seek(item->start, CFile::begin);
 			m_hpartfile.Write(item->data, lenData);
 
+#if 126976			
+			theApp.m_nDiskWrites ++;
+#endif
 			// Remove item from queue
 			m_BufferedData_list.RemoveHead();
 
@@ -4821,6 +4855,9 @@ void CPartFile::FlushBuffer(bool forcewait, bool bForceICH, bool bNoAICH)
 
 		// Flush to disk
 		m_hpartfile.Flush();
+#if 126976		
+		theApp.m_nDiskFlushes[0] ++;
+#endif		
 
 		// Check each part of the file
 		uint32 partRange = (UINT)((m_hpartfile.GetLength() % PARTSIZE > 0) ? ((m_hpartfile.GetLength() % PARTSIZE) - 1) : (PARTSIZE - 1));
@@ -5450,7 +5487,7 @@ bool CPartFile::GetNextRequestedBlock(CUpDownClient* sender,
 	//      completed before starting to download other one.
 	//  
 	// The frequency criterion defines several zones: very rare, rare, almost rare,
-	// and common. Inside each zone, the criteria have a specific ‘weight’, used 
+	// and common. Inside each zone, the criteria have a specific ï¿½weightï¿½, used 
 	// to calculate the priority of chunks. The chunk(s) with the highest 
 	// priority (highest=0, lowest=0xffff) is/are selected first.
 	//  
@@ -5756,7 +5793,7 @@ bool CPartFile::GetNextRequestedBlock(CUpDownClient* sender,
                             sender->m_lastPartAsked = tempLastPartAsked = cur_chunk.part;
                             //AddDebugLogLine(DLP_VERYLOW, false, _T("Chunk number %i selected. Rank: %u"), cur_chunk.part, cur_chunk.rank);
 
-							// Remark: this list might be reused up to ‘*count’ times
+							// Remark: this list might be reused up to ï¿½*countï¿½ times
 							chunksList.RemoveAt(cur_pos);
 							break; // exit loop for()
 						}  

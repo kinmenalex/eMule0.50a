@@ -368,6 +368,15 @@ CemuleApp::CemuleApp(LPCTSTR lpszAppName)
 	srand(time(NULL));
 	m_dwPublicIP = 0;
 	m_bAutoStart = false;
+#if 126976
+	m_nDiskFlushes[0] = 0;
+	m_nDiskFlushes[1] = 0;
+	m_nDiskFlushes[2] = 0;
+	m_nDiskFlushes[3] = 0;
+	m_nDiskWrites = 0;
+	m_nTotalBufferedData = 0;
+	m_bFlushBuffer = 0;
+#endif
 
 	// NOTE: Do *NOT* forget to specify /DELAYLOAD:gdiplus.dll as link parameter.
 	HMODULE hLib = LoadLibrary(_T("gdiplus.dll"));
@@ -1541,7 +1550,7 @@ HICON CemuleApp::LoadIcon(LPCTSTR lpszResourceName, int cx, int cy, UINT uFlags)
 			else
 			{
 				// WINBUG???: 'ExtractIcon' does not work well on ICO-files when using the color 
-				// scheme 'Windows-Standard (extragroß)' -> always try to use 'LoadImage'!
+				// scheme 'Windows-Standard (extragroï¿½)' -> always try to use 'LoadImage'!
 				//
 				// If the ICO file contains a 16x16 icon, 'LoadImage' will though return a 32x32 icon,
 				// if LR_DEFAULTSIZE is specified! -> always specify the requested size!

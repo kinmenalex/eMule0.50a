@@ -88,6 +88,18 @@ public:
 	EIdentState	GetCurrentIdentState(uint32 dwForIP) const; // can be != IdentState
 	uint32	GetSecureWaitStartTime(uint32 dwForIP);
 	void	SetSecWaitStartTime(uint32 dwForIP);
+#if 126976
+#define BAN_FLAG	0x8000
+	bool 	IsBanned() const { return (m_pCredits->nReserved3 & BAN_FLAG) ? true : false; }
+	void	SetBan(bool bBan){        
+		if( bBan ) {
+			m_pCredits->nReserved3 |= BAN_FLAG; 
+		}
+		else {
+			m_pCredits->nReserved3 &= ~BAN_FLAG; 
+		}
+	}
+#endif
 protected:
 	void	Verified(uint32 dwForIP);
 	EIdentState IdentState;

@@ -1331,6 +1331,42 @@ CString ValidFilename(CString filename)
 	return filename;
 }
 
+#if 126976
+
+CString CleanupFilename(CString filename, bool bExtension)
+{
+	filename = URLDecode(filename);
+	// filename.MakeLower();
+
+	//remove substrings, defined in the preferences (.ini)
+	CString strlink = thePrefs.GetFilenameCleanups();
+	// strlink.MakeLower();
+
+	int curPos = 0;
+	CString resToken = strlink.Tokenize(_T("|"), curPos);
+	CString resToken2;
+	
+	while (!resToken.IsEmpty())
+	{
+		resToken2 = strlink.Tokenize(_T("|"), curPos);
+		if( resToken2.IsEmpty() ) {
+			filename.Replace(resToken, _T(""));
+			break;
+		}
+		else if( resToken2 == _T("\"\"") || resToken2 == _T("[]") ) {
+			filename.Replace(resToken, _T(""));
+		}
+		else {
+			filename.Replace(resToken, resToken2);
+		}
+		resToken = strlink.Tokenize(_T("|"), curPos);
+	}
+
+	filename.Trim();
+	return filename;
+}
+#else
+
 CString CleanupFilename(CString filename, bool bExtension)
 {
 	filename = URLDecode(filename);
@@ -1449,6 +1485,8 @@ CString CleanupFilename(CString filename, bool bExtension)
 	filename.Trim();
 	return filename;
 }
+
+#endif // 126976
 
 struct SED2KFileType
 {
@@ -2222,8 +2260,12 @@ bool IsLANIP(uint32 nIP){
 	if (nFirst==192 && nSecond==168) // check this 1st, because those LANs IPs are mostly spreaded
 		return true;
 
+#if 126976
+	// allow 172.x.x.x LAN IP
+#else
 	if (nFirst==172 && nSecond>=16 && nSecond<=31)
 		return true;
+#endif
 
 	if (nFirst==0 || nFirst==10)
 		return true;

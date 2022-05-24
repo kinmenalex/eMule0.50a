@@ -19,6 +19,10 @@ protected:
 	UINT m_iQueueSize;
 	int m_iMaxConnPerFive;
 	int m_iMaxHalfOpen;
+#if 126976
+	int m_iTotalBufferLimit;
+	int m_iMaxBufferTime;
+#endif
 	bool m_bConditionalTCPAccept;
 	bool m_bAutoTakeEd2kLinks;
 	bool m_bVerbose;
@@ -70,6 +74,10 @@ protected:
 	HTREEITEM m_htiTCPGroup;
 	HTREEITEM m_htiMaxCon5Sec;
 	HTREEITEM m_htiMaxHalfOpen;
+#if 126976
+	HTREEITEM m_htiTotalBufferLimit;
+	HTREEITEM m_htiFileBufferTimeLimit;
+#endif
 	HTREEITEM m_htiConditionalTCPAccept;
 	HTREEITEM m_htiAutoTakeEd2kLinks;
 	HTREEITEM m_htiVerboseGroup;

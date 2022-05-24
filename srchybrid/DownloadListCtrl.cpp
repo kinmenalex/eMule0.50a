@@ -1295,7 +1295,12 @@ void CDownloadListCtrl::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 			CMenu PreviewWithMenu;
 			PreviewWithMenu.CreateMenu();
 			int iPreviewMenuEntries = thePreviewApps.GetAllMenuEntries(PreviewWithMenu, (iSelectedItems == 1) ? file1 : NULL);
+
+#if 126976
+			if(thePrefs.IsExtControlsEnabled() && !thePrefs.GetExtraPreviewWithMenu())
+#else
 			if(thePrefs.IsExtControlsEnabled())
+#endif				
 			{
 				if (!thePrefs.GetPreviewPrio())
 				{
@@ -1311,7 +1316,17 @@ void CDownloadListCtrl::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 					m_FileMenu.InsertMenu(MP_METINFO, MF_POPUP | MF_BYCOMMAND | (iSelectedItems == 1 ? MF_ENABLED : MF_GRAYED), (UINT_PTR)PreviewWithMenu.m_hMenu, GetResString(IDS_PREVIEWWITH));
             }
 			else {
+#if 126976
+				int bEnable;
+				if( !thePrefs.GetVideoPlayer().IsEmpty() )
+					bEnable = (iSelectedItems == 1);	// If player is set, always enable preview
+				else
+					bEnable = (iSelectedItems == 1 && iFilesToPreview == 1);
+
+				m_FileMenu.EnableMenuItem(MP_PREVIEW, bEnable ? MF_ENABLED : MF_GRAYED);
+#else
 				m_FileMenu.EnableMenuItem(MP_PREVIEW, (iSelectedItems == 1 && iFilesToPreview == 1) ? MF_ENABLED : MF_GRAYED);
+#endif
 				if (iPreviewMenuEntries)
 					m_FileMenu.InsertMenu(MP_METINFO, MF_POPUP | MF_BYCOMMAND | (iSelectedItems == 1 ? MF_ENABLED : MF_GRAYED), (UINT_PTR)PreviewWithMenu.m_hMenu, GetResString(IDS_PREVIEWWITH));
 			}
@@ -1384,6 +1399,14 @@ void CDownloadListCtrl::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 			ClientMenu.AddMenuTitle(GetResString(IDS_CLIENTS), true);
 			ClientMenu.AppendMenu(MF_STRING, MP_DETAIL, GetResString(IDS_SHOWDETAILS), _T("CLIENTDETAILS"));
 			ClientMenu.SetDefaultItem(MP_DETAIL);
+#if 126976
+			if (client->IsBanned()){
+				ClientMenu.AppendMenu(MF_STRING, MP_UNBAN, _T("Unban client"), _T("SMILEY_WINK"));
+			}
+			else {
+				ClientMenu.AppendMenu(MF_STRING, MP_BAN, _T("BAN client"), _T("DELETEFRIEND"));
+			}
+#endif			
 			ClientMenu.AppendMenu(MF_STRING | ((client && client->IsEd2kClient() && !client->IsFriend()) ? MF_ENABLED : MF_GRAYED), MP_ADDFRIEND, GetResString(IDS_ADDFRIEND), _T("ADDFRIEND"));
 			ClientMenu.AppendMenu(MF_STRING | ((client && client->IsEd2kClient()) ? MF_ENABLED : MF_GRAYED), MP_MESSAGE, GetResString(IDS_SEND_MSG), _T("SENDMESSAGE"));
 			ClientMenu.AppendMenu(MF_STRING | ((client && client->IsEd2kClient() && client->GetViewSharedFilesSupport()) ? MF_ENABLED : MF_GRAYED), MP_SHOWLIST, GetResString(IDS_VIEWFILES), _T("VIEWFILES"));
@@ -1927,6 +1950,22 @@ BOOL CDownloadListCtrl::OnCommand(WPARAM wParam, LPARAM /*lParam*/)
 					if (theApp.friendlist->AddFriend(client))
 						UpdateItem(client);
 					break;
+#if 126976					
+				case MP_BAN:
+					if (!client->IsBanned()){
+						client->Ban(_T("Administrator BAN"));
+						client->Credits()->SetBan(true);
+						UpdateItem(client);
+					}
+					break;
+				case MP_UNBAN:
+					if (client->IsBanned()){
+						client->UnBan();
+						client->Credits()->SetBan(false);
+						UpdateItem(client);
+					}
+					break;
+#endif
 				case MP_DETAIL:
 				case MPG_ALTENTER:
 					ShowClientDialog(client);
@@ -2391,7 +2430,11 @@ void CDownloadListCtrl::CreateMenues()
 	m_FileMenu.AppendMenu(MF_STRING, MP_OPEN, GetResString(IDS_DL_OPEN), _T("OPENFILE"));
 	
 	// Extended: Submenu with Preview options, Normal: Preview and possibly 'Preview with' item 
+#if 126976
+	if (thePrefs.IsExtControlsEnabled() && !thePrefs.GetExtraPreviewWithMenu())
+#else
 	if (thePrefs.IsExtControlsEnabled())
+#endif				
 	{
 		m_PreviewMenu.CreateMenu();
 		m_PreviewMenu.AddMenuTitle(NULL, true);

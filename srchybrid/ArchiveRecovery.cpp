@@ -149,7 +149,16 @@ bool CArchiveRecovery::performRecovery(CPartFile *partFile, CTypedPtrList<CPtrLi
 		else if (myAtype==ARCHIVE_ACE)
 			ext=_T(".ace");
 
+#if 126976
+		CString archiveTempPath;
+		archiveTempPath = thePrefs.GetArchiveTempPath();
+		if( archiveTempPath.IsEmpty() ) {
+			archiveTempPath = partFile->GetTempPath();
+		}
+		CString outputFileName = archiveTempPath + partFile->GetFileName().Mid(0, 5) + _T("-rec") + ext;
+#else		
 		CString outputFileName = partFile->GetTempPath()  + partFile->GetFileName().Mid(0, 5) + _T("-rec") + ext;
+#endif
 		CFile output;
 		ULONGLONG ulTempFileSize = 0;
 		if (output.Open(outputFileName, CFile::modeWrite | CFile::shareDenyWrite | CFile::modeCreate))
@@ -578,6 +587,23 @@ bool CArchiveRecovery::processZipEntry(CFile *zipInput, CFile *zipOutput, uint32
 			
 			// Read and write compressed data to avoid reading all into memory
 			uint32 written = 0;
+#if 126976
+	#define MAX_CHUNK 	(10*1024*1024)
+			BYTE * buf = new BYTE[MAX_CHUNK];
+			uint32 lenChunk = MAX_CHUNK;
+			while (written < entry.lenCompressed)
+			{
+				lenChunk  = (entry.lenCompressed - written);
+				if (lenChunk > MAX_CHUNK)
+					lenChunk = MAX_CHUNK;
+				lenChunk = zipInput->Read(buf, lenChunk);
+				if (lenChunk == 0)
+					break;
+				written += lenChunk;
+				zipOutput->Write(buf, lenChunk);
+			}
+			delete buf;
+#else
 			BYTE buf[4096];
 			uint32 lenChunk = 4096;
 			while (written < entry.lenCompressed)
@@ -591,6 +617,7 @@ bool CArchiveRecovery::processZipEntry(CFile *zipInput, CFile *zipOutput, uint32
 				written += lenChunk;
 				zipOutput->Write(buf, lenChunk);
 			}
+#endif
 			zipOutput->Flush();
 		}
 
@@ -680,7 +707,12 @@ bool CArchiveRecovery::CopyFile(CPartFile *partFile, CTypedPtrList<CPtrList, Gap
 		Gap_Struct *fill = filled->GetTail();
 		destFile.SetLength(fill->end);
 
+#if 126976
+	#define MAX_BUFFER_SIZE	(10*1024*1024)
+		BYTE *buffer = new BYTE[MAX_BUFFER_SIZE];
+#else
 		BYTE buffer[4096];
+#endif
 		uint32 read;
 		uint32 copied;
 
@@ -693,7 +725,11 @@ bool CArchiveRecovery::CopyFile(CPartFile *partFile, CTypedPtrList<CPtrList, Gap
 			copied = 0;
 			srcFile.Seek(fill->start, CFile::begin);
 			destFile.Seek(fill->start, CFile::begin);
+#if 126976
+			while ((read = srcFile.Read(buffer, MAX_BUFFER_SIZE)) > 0)
+#else
 			while ((read = srcFile.Read(buffer, 4096)) > 0)
+#endif
 			{
 				destFile.Write(buffer, read);
 				copied += read;
@@ -706,6 +742,9 @@ bool CArchiveRecovery::CopyFile(CPartFile *partFile, CTypedPtrList<CPtrList, Gap
 		srcFile.Close();
 		partFile->m_bPreviewing = false;
 
+#if 126976
+	delete buffer;
+#endif
 		retVal = true;
 	}
 	catch (CFileException* error){
@@ -1230,6 +1269,23 @@ void CArchiveRecovery::writeRarBlock(CFile *input, CFile *output, RAR_BlockFile 
 		{
 			input->Seek(block->offsetData, CFile::begin);
 			uint32 written = 0;
+#if 126976
+	#define MAX_CHUNK	(10*1024*1024)
+			BYTE * chunk = new BYTE[MAX_CHUNK];
+			uint32 lenChunk = MAX_CHUNK;
+			while (written < lenToCopy)
+			{
+				lenChunk  = (lenToCopy - written);
+				if (lenChunk > MAX_CHUNK)
+					lenChunk = MAX_CHUNK;
+				lenChunk = input->Read(chunk, lenChunk);
+				if (lenChunk == 0)
+					break;
+				written += lenChunk;
+				output->Write(chunk, lenChunk);
+			}
+			delete chunk;
+#else
 			BYTE chunk[4096];
 			uint32 lenChunk = 4096;
 			while (written < lenToCopy)
@@ -1243,6 +1299,7 @@ void CArchiveRecovery::writeRarBlock(CFile *input, CFile *output, RAR_BlockFile 
 				written += lenChunk;
 				output->Write(chunk, lenChunk);
 			}
+#endif			
 		}
 		output->Flush();
 	}

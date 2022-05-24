@@ -1355,6 +1355,18 @@ CString CTransferWnd::GetTabStatistic(int tab)
     }
 
 	CString title;
+#if 126976
+	title.Format(_T("%s: %i\n\n%s: %i\n%s: %i\n%s: %i\n%s: %i\n\n%s: %s\n\n%s: %.1f %s\n%s: %s/%s\n%s%s\n"),
+		GetResString(IDS_FILES), count + compl,
+		GetResString(IDS_DOWNLOADING), dwl,
+		GetResString(IDS_PAUSED), paus,
+		GetResString(IDS_ERRORLIKE), err,
+		GetResString(IDS_DL_TRANSFCOMPL), compl,
+        GetResString(IDS_PRIORITY), prio,
+		GetResString(IDS_DL_SPEED) ,speed, GetResString(IDS_KBYTESPERSEC),
+		GetResString(IDS_DL_SIZE), CastItoXBytes(trsize, false, false), CastItoXBytes(size, false, false),
+		GetResString(IDS_ONDISK), CastItoXBytes(disksize, false, false));
+#else
 	title.Format(_T("%s: %i\n\n%s: %i\n%s: %i\n%s: %i\n%s: %i\n\n%s: %s\n\n%s: %.1f %s\n%s: %s/%s\n%s%s"),
 		GetResString(IDS_FILES), count + compl,
 		GetResString(IDS_DOWNLOADING), dwl,
@@ -1365,6 +1377,7 @@ CString CTransferWnd::GetTabStatistic(int tab)
 		GetResString(IDS_DL_SPEED), speed, GetResString(IDS_KBYTESPERSEC),
 		GetResString(IDS_DL_SIZE), CastItoXBytes(trsize, false, false), CastItoXBytes(size, false, false),
 		GetResString(IDS_ONDISK), CastItoXBytes(disksize, false, false));
+#endif
 	title += TOOLTIP_AUTOFORMAT_SUFFIX_CH;
 	return title;
 }

@@ -2626,6 +2626,11 @@ BOOL CemuleDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 		case MP_HM_OPENINC:
 			ShellExecute(NULL, _T("open"), thePrefs.GetMuleDirectory(EMULE_INCOMINGDIR),NULL, NULL, SW_SHOW); 
 			break;
+#if 126976
+		case MP_HM_FLUSH_BUFFER:
+			theApp.m_bFlushBuffer = 1;	// Flush all Buffer to Disk
+			break;
+#endif				
 		case MP_HM_HELP:
 		case TBBTN_HELP:
 			if (activewnd != NULL) {
@@ -2773,6 +2778,9 @@ void CemuleDlg::ShowToolPopup(bool toolsonly)
 	}
 
 	menu.AppendMenu(MF_STRING,MP_HM_OPENINC, GetResString(IDS_OPENINC) + _T("..."), _T("INCOMING"));
+#if 126976
+	menu.AppendMenu(MF_STRING,MP_HM_FLUSH_BUFFER, _T("Flush Buffered Data"), _T("FLUSHBUFFER"));
+#endif
 	menu.AppendMenu(MF_STRING,MP_HM_CONVERTPF, GetResString(IDS_IMPORTSPLPF) + _T("..."), _T("CONVERT"));
 	menu.AppendMenu(MF_STRING,MP_HM_1STSWIZARD, GetResString(IDS_WIZ1) + _T("..."), _T("WIZARD"));
 	menu.AppendMenu(MF_STRING,MP_HM_IPFILTER, GetResString(IDS_IPFILTER) + _T("..."), _T("IPFILTER"));

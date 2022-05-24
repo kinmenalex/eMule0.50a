@@ -222,6 +222,13 @@ protected:
 
 private:
     UINT     m_wTimerRes;
+#if 126976	
+public:
+	uint32 m_nDiskFlushes[4];
+	uint32 m_nDiskWrites;
+	uint32 m_nTotalBufferedData;
+	uint32 m_bFlushBuffer;
+#endif
 };
 
 extern CemuleApp theApp;

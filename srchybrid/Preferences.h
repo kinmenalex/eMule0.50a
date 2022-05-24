@@ -313,14 +313,14 @@ public:
 
 	static	UINT	m_uTransferWnd1;
 	static	UINT	m_uTransferWnd2;
-	//MORPH START - Added by SiRoB, Splitting Bar [O²]
+	//MORPH START - Added by SiRoB, Splitting Bar [Oï¿½]
 	static	UINT	splitterbarPositionStat;
 	static	UINT	splitterbarPositionStat_HL;
 	static	UINT	splitterbarPositionStat_HR;
 	static	UINT	splitterbarPositionFriend;
 	static	UINT	splitterbarPositionIRC;
 	static	UINT	splitterbarPositionShared;
-	//MORPH END - Added by SiRoB, Splitting Bar [O²]
+	//MORPH END - Added by SiRoB, Splitting Bar [Oï¿½]
 	static	UINT	m_uDeadServerRetries;
 	static	DWORD	m_dwServerKeepAliveTimeout;
 	// -khaos--+++> Changed data type to avoid overflows
@@ -443,6 +443,9 @@ public:
 
 	static	UINT	filterlevel;
 	static	UINT	m_iFileBufferSize;
+#if 126976
+	static	UINT	m_iTotalBufferLimit;
+#endif
 	static	UINT	m_iQueueSize;
 	static	int		m_iCommitFiles;
 	static	UINT	m_uFileBufferTimeLimit;
@@ -575,6 +578,9 @@ public:
 	static CString	m_strNotifierMailServer;
 	static CString	m_strNotifierMailSender;
 	static CString	m_strNotifierMailReceiver;
+#if 126976	
+	static CString	m_strArchiveTempPath;
+#endif
 
 	// encryption / obfuscation / verification
 	static bool		m_bCryptLayerRequested;
@@ -961,7 +967,7 @@ public:
 	static	void	SetTransferWnd1(UINT uWnd1)			{m_uTransferWnd1 = uWnd1;}
 	static	UINT	GetTransferWnd2()					{return m_uTransferWnd2;}
 	static	void	SetTransferWnd2(UINT uWnd2)			{m_uTransferWnd2 = uWnd2;}
-	//MORPH START - Added by SiRoB, Splitting Bar [O²]
+	//MORPH START - Added by SiRoB, Splitting Bar [Oï¿½]
 	static	UINT	GetSplitterbarPositionStat()		{return splitterbarPositionStat;}
 	static	void	SetSplitterbarPositionStat(UINT pos) {splitterbarPositionStat=pos;}
 	static	UINT	GetSplitterbarPositionStat_HL()		{return splitterbarPositionStat_HL;}
@@ -974,7 +980,7 @@ public:
 	static	void	SetSplitterbarPositionIRC(UINT pos) {splitterbarPositionIRC=pos;}
 	static	UINT	GetSplitterbarPositionShared()		{return splitterbarPositionShared;}
 	static	void	SetSplitterbarPositionShared(UINT pos) {splitterbarPositionShared=pos;}
-	//MORPH END   - Added by SiRoB, Splitting Bar [O²]
+	//MORPH END   - Added by SiRoB, Splitting Bar [Oï¿½]
 	// -khaos--+++> Changed datatype to avoid overflows
 	static	UINT	GetStatsMax()						{return statsMax;}
 	// <-----khaos-
@@ -1070,6 +1076,11 @@ public:
 
 	static	UINT	GetFileBufferSize()					{return m_iFileBufferSize;}
 	static	UINT	GetFileBufferTimeLimit()			{return m_uFileBufferTimeLimit;}
+#if 126976
+	static	UINT	GetTotalBufferLimit()				{return m_iTotalBufferLimit;}
+	static	void	SetFileBufferTimeLimit(uint32 t)	{ m_uFileBufferTimeLimit = t;}
+	static	void 	SetTotalBufferLimit(uint32 t)		{ m_iTotalBufferLimit = t;}
+#endif
 	static	UINT	GetQueueSize()						{return m_iQueueSize;}
 	static	int		GetCommitFiles()					{return m_iCommitFiles;}
 	static	bool	GetShowCopyEd2kLinkCmd()			{return m_bShowCopyEd2kLinkCmd;}
@@ -1345,6 +1356,10 @@ public:
 	static	CString	GetNotifierMailSender()				{return m_strNotifierMailSender;}
 	static	CString	GetNotifierMailReceiver()			{return m_strNotifierMailReceiver;}
 
+#if 126976	
+	static	CString	GetArchiveTempPath()				{return m_strArchiveTempPath;}
+#endif
+		
 	static	void	SetNotifierSendMail(bool nv)		{m_bNotifierSendMail = nv;}
 	static  bool	DoFlashOnNewMessage()				{return m_bIconflashOnNewMessage;}
 	static  void	IniCopy(CString si, CString di);

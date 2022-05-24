@@ -658,7 +658,14 @@ bool CUpDownClient::ProcessHelloTypePacket(CSafeMemFile* data)
 			if (thePrefs.GetLogBannedClients())
 				AddDebugLogLine(false, _T("Clients: %s (%s), Banreason: Userhash changed (Found in TrackedClientsList)"), GetUserName(), ipstr(GetConnectIP()));
 			Ban();
-		}	
+		}
+#if 126976		
+		if( credits->IsBanned() )
+		{
+			AddLogLine(false, _T("Clients: %s (%s), Banreason: Banned saved"), GetUserName(), ipstr(GetConnectIP()));
+			Ban();
+		}
+#endif		
 	}
 	else if (credits != pFoundCredits){
 		// userhash change ok, however two hours "waittime" before it can be used

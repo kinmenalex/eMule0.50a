@@ -127,7 +127,11 @@
 #define CLIENTLIST_CLEANUP_TIME	MIN2MS(34)	// 34 min
 #define MAXPRIORITYCOLL_SIZE	50*1024		// max file size for collection file which are allowed to bypass the queue
 #define SEARCH_SPAM_THRESHOLD	60
+#if 126976
+#define OLDFILES_PARTIALLYPURGE DAY2S(365)	// time after which some data about a know file in the known.met and known2.met is deleted
+#else
 #define OLDFILES_PARTIALLYPURGE DAY2S(31)	// time after which some data about a know file in the known.met and known2.met is deleted
+#endif
 
 // you shouldn't change anything here if you are not really sure, or emule will probaly not work
 #define UDP_KAD_MAXFRAGMENT		1420		// based on a 1500 ethernet MTU, use a conservative value to leave enough room for IP/UDP headers, tunnel headers, Kad headers(16) and misconfigs 

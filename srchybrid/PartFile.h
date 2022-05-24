@@ -398,5 +398,9 @@ private:
 
     DWORD   lastSwapForSourceExchangeTick; // ZZ:DownloadManaager
 
-
+#if 126976
+	public:
+	uint64 GetBufferDataSize() { return m_nTotalBufferData;  }
+	void ResetLastFlushTime()  { m_nLastBufferFlushTime = 0; }
+#endif
 };

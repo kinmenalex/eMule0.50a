@@ -91,6 +91,11 @@ private:
 	HTREEITEM	time_aap_down_s[3][2], time_aap_down_oh[3][4];
 
 	HTREEITEM h_total_downloads;
+#if 126976
+	HTREEITEM h_total_buffered_data;
+	HTREEITEM h_total_num_of_flushes;
+	HTREEITEM h_flush_time_limit;
+#endif
 	HTREEITEM h_total_num_of_dls;
 	HTREEITEM h_total_size_of_dls;
 	HTREEITEM h_total_size_dld;
@@ -119,7 +124,7 @@ protected:
 	virtual void OnSize(UINT nType,int cx,int cy);
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support	
 
-	//MORPH START - Added by SiRoB, Splitting Bar [O²]
+	//MORPH START - Added by SiRoB, Splitting Bar [Oï¿½]
 	CSplitterControl m_wndSplitterstat; //bzubzusplitstat
 	CSplitterControl m_wndSplitterstat_HL; //bzubzusplitstat
 	CSplitterControl m_wndSplitterstat_HR; //bzubzusplitstat
@@ -128,7 +133,7 @@ protected:
 	void DoResize_HR(int delta);
 	void initCSize();
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
-	//MORPH END   - Added by SiRoB, Splitting Bar [O²]
+	//MORPH END   - Added by SiRoB, Splitting Bar [Oï¿½]
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	bool	m_bTreepaneHidden;

@@ -2970,6 +2970,19 @@ void CStatisticsDlg::ShowStatistics(bool forceUpdate)
 		cbuffer.Format(GetResString(IDS_DWTOT_NR), iActiveFiles);
 		stattree.SetItemText(h_total_num_of_dls, cbuffer);
 
+#if 126976
+		cbuffer.Format(_T("Total Buffered Data: %s"), CastItoXBytes(theApp.m_nTotalBufferedData, false, false) ); 
+		stattree.SetItemText(h_total_buffered_data, cbuffer);
+
+		cbuffer.Format(_T("PartFile Flushes: %d , File Writes: %d"), theApp.m_nDiskFlushes[0], theApp.m_nDiskWrites); 
+		stattree.SetItemText(h_total_num_of_flushes, cbuffer);
+
+		cbuffer.Format(_T("Flushed By Buffer: %d , By Time: %d , Others: %d"),
+			theApp.m_nDiskFlushes[1],theApp.m_nDiskFlushes[2],
+			theApp.m_nDiskFlushes[0]-(theApp.m_nDiskFlushes[1]+theApp.m_nDiskFlushes[2]) ); 
+		stattree.SetItemText(h_flush_time_limit, cbuffer);
+#endif
+
 		cbuffer.Format(GetResString(IDS_DWTOT_TSD), CastItoXBytes(ui64TotalFileSize, false, false));
 		stattree.SetItemText(h_total_size_of_dls, cbuffer);
 
@@ -3363,6 +3376,12 @@ void CStatisticsDlg::CreateMyTree()
 	h_total_size_left_to_dl=stattree.InsertItem(GetResString(IDS_DWTOT_TSL),h_total_downloads);
 	h_total_size_left_on_drive=stattree.InsertItem(GetResString(IDS_DWTOT_FS),h_total_downloads);
 	h_total_size_needed=stattree.InsertItem(GetResString(IDS_DWTOT_TSN),h_total_downloads);
+
+#if 126976
+	h_total_buffered_data=stattree.InsertItem(_T("h_total_buffered_data"),h_total_downloads);
+	h_total_num_of_flushes=stattree.InsertItem(_T("h_total_num_of_flushes"),h_total_downloads);
+	h_flush_time_limit=stattree.InsertItem(_T("h_flush_time_limit"),h_total_downloads);
+#endif
 
 #ifdef _DEBUG
 	if (g_pfnPrevCrtAllocHook)

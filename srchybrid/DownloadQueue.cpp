@@ -389,6 +389,9 @@ void CDownloadQueue::Process(){
 
 	uint32 datarateX=0;
 	udcounter++;
+#if 126976
+	uint32 totalBufferedData=0;
+#endif
 
 	theStats.m_fGlobalDone = 0;
 	theStats.m_fGlobalSize = 0;
@@ -409,6 +412,9 @@ void CDownloadQueue::Process(){
 
 		if (cur_file->GetStatus() == PS_READY || cur_file->GetStatus() == PS_EMPTY){
 			datarateX += cur_file->Process(downspeed, udcounter);
+#if 126976
+			totalBufferedData += (uint32)cur_file->GetBufferDataSize();
+#endif
 		}
 		else{
 			//This will make sure we don't keep old sources to paused and stoped files..
@@ -416,6 +422,21 @@ void CDownloadQueue::Process(){
 		}
 	}
 
+#if 126976
+	theApp.m_nTotalBufferedData = totalBufferedData;
+
+	if( theApp.m_bFlushBuffer )	// Flush all Buffered Data to Disk
+	{
+		for (POSITION pos = filelist.GetHeadPosition();pos != 0;){
+			CPartFile* cur_file = filelist.GetNext(pos);
+			if (cur_file->GetStatus() == PS_READY || cur_file->GetStatus() == PS_EMPTY){
+				cur_file->ResetLastFlushTime();		// trigger FlushBuffer();
+			}
+		}
+		theApp.m_bFlushBuffer = 0;
+	}
+#endif	
+		
 	TransferredData newitem = {datarateX, ::GetTickCount()};
 	avarage_dr_list.AddTail(newitem);
 	m_datarateMS+=datarateX;

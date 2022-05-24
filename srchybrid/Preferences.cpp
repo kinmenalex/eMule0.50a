@@ -360,6 +360,9 @@ bool	CPreferences::m_bUseChatCaptchas;
 UINT	CPreferences::filterlevel;
 UINT	CPreferences::m_iFileBufferSize;
 UINT	CPreferences::m_uFileBufferTimeLimit;
+#if 126976
+UINT	CPreferences::m_iTotalBufferLimit;
+#endif
 UINT	CPreferences::m_iQueueSize;
 int		CPreferences::m_iCommitFiles;
 UINT	CPreferences::maxmsgsessions;
@@ -465,6 +468,10 @@ bool	CPreferences::m_bNotifierSendMail;
 CString	CPreferences::m_strNotifierMailServer;
 CString	CPreferences::m_strNotifierMailSender;
 CString	CPreferences::m_strNotifierMailReceiver;
+
+#if 126976
+CString	CPreferences::m_strArchiveTempPath;
+#endif
 
 bool	CPreferences::m_bWinaTransToolbar;
 bool	CPreferences::m_bShowDownloadToolbar;
@@ -1709,6 +1716,10 @@ void CPreferences::SavePreferences()
 	ini.DeleteKey(L"FileBufferSizePref"); // delete old 'file buff size' setting
 	ini.WriteInt(L"FileBufferSize", m_iFileBufferSize);
 
+#if 126976
+	ini.WriteInt(L"FileBufferTimeLimit", m_uFileBufferTimeLimit /1000);
+	ini.WriteInt(L"TotalBufferLimit", m_iTotalBufferLimit);
+#endif
 	ini.DeleteKey(L"QueueSizePref"); // delete old 'queue size' setting
 	ini.WriteInt(L"QueueSize", m_iQueueSize);
 
@@ -2237,7 +2248,11 @@ void CPreferences::LoadPreferences()
 	m_bshowoverhead=ini.GetBool(L"ShowOverhead",false);
 	moviePreviewBackup=ini.GetBool(L"VideoPreviewBackupped",true);
 	m_iPreviewSmallBlocks=ini.GetInt(L"PreviewSmallBlocks", 0);
+#if 126976	
+	m_bPreviewCopiedArchives=ini.GetBool(L"PreviewCopiedArchives", false);
+#else
 	m_bPreviewCopiedArchives=ini.GetBool(L"PreviewCopiedArchives", true);
+#endif
 	m_iInspectAllFileTypes=ini.GetInt(L"InspectAllFileTypes", 0);
 	m_bAllocFull=ini.GetBool(L"AllocateFullFile",0);
 	m_bAutomaticArcPreviewStart=ini.GetBool(L"AutoArchivePreviewStart", true);
@@ -2255,7 +2270,16 @@ void CPreferences::LoadPreferences()
 	else
 		m_iFileBufferSize = ((m_iFileBufferSize*15000 + 512)/1024)*1024;
 	m_iFileBufferSize=ini.GetInt(L"FileBufferSize",m_iFileBufferSize);
+#if 126976
+	m_uFileBufferTimeLimit = SEC2MS(ini.GetInt(L"FileBufferTimeLimit", 1800));
+
+	m_iTotalBufferLimit=ini.GetInt(L"TotalBufferLimit",m_iTotalBufferLimit);
+
+	if (m_iTotalBufferLimit == 0)
+		m_iTotalBufferLimit = 64*1024*1024;	// 64 MB
+#else
 	m_uFileBufferTimeLimit = SEC2MS(ini.GetInt(L"FileBufferTimeLimit", 60));
+#endif
 
 	// read queue size (with backward compatibility)
 	m_iQueueSize=ini.GetInt(L"QueueSizePref",0); // old setting
@@ -2403,6 +2427,10 @@ void CPreferences::LoadPreferences()
 	m_strNotifierMailSender = ini.GetString(L"NotifierMailSender", L"");
 	m_strNotifierMailServer = ini.GetString(L"NotifierMailServer", L"");
 	m_strNotifierMailReceiver = ini.GetString(L"NotifierMailRecipient", L"");
+
+#if 126976
+	m_strArchiveTempPath = ini.GetString(L"ArchiveTempPath", L"");
+#endif
 
 	m_bWinaTransToolbar = ini.GetBool(L"WinaTransToolbar", true);
 	m_bShowDownloadToolbar = ini.GetBool(L"ShowDownloadToolbar", true);

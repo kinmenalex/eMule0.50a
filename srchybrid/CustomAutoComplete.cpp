@@ -7,7 +7,7 @@
 //
 //  Author:         Klaus H. Probst [kprobst@vbbox.com]
 //  URL:            http://www.vbbox.com/
-//  Copyright:      This work is copyright © 2002, Klaus H. Probst
+//  Copyright:      This work is copyright ï¿½ 2002, Klaus H. Probst
 //  Usage:          You may use this code as you see fit, provided that you assume all
 //                  responsibilities for doing so.
 //  Distribution:   Distribute freely as long as you maintain this notice as part of the
@@ -316,7 +316,11 @@ void CCustomAutoComplete::InternalInit()
 	m_nCurrentElement = 0;
 	m_nRefCount = 0;
 	m_fBound = FALSE;
+#if 126976		
+	m_iMaxItemCount = 50;
+#else
 	m_iMaxItemCount = 30;
+#endif
 }
 
 HRESULT CCustomAutoComplete::EnDisable(BOOL p_fEnable)

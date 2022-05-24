@@ -61,6 +61,10 @@ CPPgTweaks::CPPgTweaks()
 	m_iQueueSize = 0;
 	m_iMaxConnPerFive = 0;
 	m_iMaxHalfOpen = 0;
+#if 126976
+	m_iTotalBufferLimit = 0;
+	m_iMaxBufferTime = 0;
+#endif
 	m_bConditionalTCPAccept = false;
 	m_bAutoTakeEd2kLinks = false;
 	m_bVerbose = false;
@@ -106,6 +110,10 @@ CPPgTweaks::CPPgTweaks()
 	m_htiTCPGroup = NULL;
 	m_htiMaxCon5Sec = NULL;
 	m_htiMaxHalfOpen = NULL;
+#if 126976
+	m_htiTotalBufferLimit = NULL;
+	m_htiFileBufferTimeLimit = NULL;
+#endif
 	m_htiConditionalTCPAccept = NULL;
 	m_htiAutoTakeEd2kLinks = NULL;
 	m_htiVerboseGroup = NULL;
@@ -207,6 +215,12 @@ void CPPgTweaks::DoDataExchange(CDataExchange* pDX)
 		/////////////////////////////////////////////////////////////////////////////
 		// Miscellaneous group
 		//
+#if 126976
+		m_htiTotalBufferLimit = m_ctrlTreeOptions.InsertItem(_T("Total buffer limit (MB)"), TREEOPTSCTRLIMG_EDIT, TREEOPTSCTRLIMG_EDIT, TVI_ROOT);
+		m_ctrlTreeOptions.AddEditBox(m_htiTotalBufferLimit, RUNTIME_CLASS(CNumTreeOptionsEdit));
+		m_htiFileBufferTimeLimit = m_ctrlTreeOptions.InsertItem(_T("Max buffer time (sec)"), TREEOPTSCTRLIMG_EDIT, TREEOPTSCTRLIMG_EDIT, TVI_ROOT);
+		m_ctrlTreeOptions.AddEditBox(m_htiFileBufferTimeLimit, RUNTIME_CLASS(CNumTreeOptionsEdit));
+#endif
 		m_htiAutoTakeEd2kLinks = m_ctrlTreeOptions.InsertCheckBox(GetResString(IDS_AUTOTAKEED2KLINKS), TVI_ROOT, m_bAutoTakeEd2kLinks);
 		m_htiCreditSystem = m_ctrlTreeOptions.InsertCheckBox(GetResString(IDS_USECREDITSYSTEM), TVI_ROOT, m_bCreditSystem);
 		m_htiFirewallStartup = m_ctrlTreeOptions.InsertCheckBox(GetResString(IDS_FO_PREF_STARTUP), TVI_ROOT, m_bFirewallStartup);
@@ -315,6 +329,13 @@ void CPPgTweaks::DoDataExchange(CDataExchange* pDX)
 	DDV_MinMaxInt(pDX, m_iMaxConnPerFive, 1, INT_MAX);
 	DDX_TreeEdit(pDX, IDC_EXT_OPTS, m_htiMaxHalfOpen, m_iMaxHalfOpen);
 	DDV_MinMaxInt(pDX, m_iMaxHalfOpen, 1, INT_MAX);
+#if 126976
+	DDX_TreeEdit(pDX, IDC_EXT_OPTS, m_htiTotalBufferLimit, m_iTotalBufferLimit);
+	DDV_MinMaxInt(pDX, m_iTotalBufferLimit, 1, 4095);
+	DDX_TreeEdit(pDX, IDC_EXT_OPTS, m_htiFileBufferTimeLimit, m_iMaxBufferTime);
+	DDV_MinMaxInt(pDX, m_iMaxBufferTime, 1, INT_MAX/1000);
+#endif
+	
 	DDX_TreeCheck(pDX, IDC_EXT_OPTS, m_htiConditionalTCPAccept, m_bConditionalTCPAccept);
 	DDX_Text(pDX, IDC_EXT_OPTS, m_htiServerKeepAliveTimeout, m_uServerKeepAliveTimeout);
 
@@ -408,6 +429,10 @@ BOOL CPPgTweaks::OnInitDialog()
 {
 	m_iMaxConnPerFive = thePrefs.GetMaxConperFive();
 	m_iMaxHalfOpen = thePrefs.GetMaxHalfConnections();
+#if 126976
+	m_iTotalBufferLimit = thePrefs.GetTotalBufferLimit() / (1024*1024);
+	m_iMaxBufferTime = thePrefs.GetFileBufferTimeLimit() / 1000;
+#endif
 	m_bConditionalTCPAccept = thePrefs.GetConditionalTCPAccept();
 	m_bAutoTakeEd2kLinks = thePrefs.AutoTakeED2KLinks();
 	if (thePrefs.GetEnableVerboseOptions())
@@ -463,11 +488,20 @@ BOOL CPPgTweaks::OnInitDialog()
 	m_ctrlTreeOptions.SetItemHeight(m_ctrlTreeOptions.GetItemHeight() + 2);
 
 	m_iFileBufferSize = thePrefs.m_iFileBufferSize;
+#if 126976
+	m_ctlFileBuffSize.SetRange(1, 40, TRUE);
+#else
 	m_ctlFileBuffSize.SetRange(16, 1024+512, TRUE);
+#endif
 	int iMin, iMax;
 	m_ctlFileBuffSize.GetRange(iMin, iMax);
+#if 126976
+	m_ctlFileBuffSize.SetPos(m_iFileBufferSize/(1024*256));
+	int iPage = 4;
+#else
 	m_ctlFileBuffSize.SetPos(m_iFileBufferSize/1024);
 	int iPage = 128;
+#endif
 	for (int i = ((iMin+iPage-1)/iPage)*iPage; i < iMax; i += iPage)
 		m_ctlFileBuffSize.SetTic(i);
 	m_ctlFileBuffSize.SetPageSize(iPage);
@@ -505,6 +539,11 @@ BOOL CPPgTweaks::OnApply()
 	theApp.scheduler->original_cons5s = thePrefs.GetMaxConperFive();
 	thePrefs.SetMaxHalfConnections(m_iMaxHalfOpen ? m_iMaxHalfOpen : DFLT_MAXHALFOPEN);
 	thePrefs.m_bConditionalTCPAccept = m_bConditionalTCPAccept;
+
+#if 126976
+	thePrefs.SetTotalBufferLimit(m_iTotalBufferLimit ? m_iTotalBufferLimit*(1024*1024) : 64*1024*1024);
+	thePrefs.SetFileBufferTimeLimit( (m_iMaxBufferTime ? m_iMaxBufferTime : 1800)*1000 );
+#endif
 
 	if (thePrefs.AutoTakeED2KLinks() != m_bAutoTakeEd2kLinks)
 	{
@@ -599,7 +638,11 @@ void CPPgTweaks::OnHScroll(UINT /*nSBCode*/, UINT /*nPos*/, CScrollBar* pScrollB
 {
 	if (pScrollBar->GetSafeHwnd() == m_ctlFileBuffSize.m_hWnd)
 	{
+#if 126976	
+		m_iFileBufferSize = m_ctlFileBuffSize.GetPos() * (1024*256);
+#else	
 		m_iFileBufferSize = m_ctlFileBuffSize.GetPos() * 1024;
+#endif
         CString temp;
 		temp.Format(_T("%s: %s"), GetResString(IDS_FILEBUFFERSIZE), CastItoXBytes(m_iFileBufferSize, false, false));
 		GetDlgItem(IDC_FILEBUFFERSIZE_STATIC)->SetWindowText(temp);
@@ -695,6 +738,10 @@ void CPPgTweaks::OnDestroy()
 	m_htiTCPGroup = NULL;
 	m_htiMaxCon5Sec = NULL;
 	m_htiMaxHalfOpen = NULL;
+#if 126976	
+	m_htiTotalBufferLimit = NULL;
+	m_htiFileBufferTimeLimit = NULL;
+#endif	
 	m_htiConditionalTCPAccept = NULL;
 	m_htiAutoTakeEd2kLinks = NULL;
 	m_htiVerboseGroup = NULL;

@@ -6,8 +6,12 @@
 #define	HAVE_SAPI_H
 #define HAVE_QEDIT_H
 #define HAVE_WMSDK_H
+#if 126976
+  // no WIN7 SDK
+#else
 #define HAVE_WIN7_SDK_H
 #define HAVE_VISTA_SDK	
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Visual Studio 2003
@@ -16,7 +20,9 @@
 
 // 'sapi.h' is not shipped with VS2003.
 // Uncomment the following line if you get compile errors due to missing 'sapi.h'
-//#undef HAVE_SAPI_H
+#if 126976
+#undef HAVE_SAPI_H
+#endif
 
 // 'qedit.h' is shipped with VS2003.
 //#undef HAVE_QEDIT_H
@@ -49,7 +55,7 @@
 #if _MSC_VER==1400
 
 // NOTE: eMule can not get compiled with VS2005 out of the box because the SDK
-// which is shipped with VS2005 does not contain the ‘upnp.h’ header file - and
+// which is shipped with VS2005 does not contain the ï¿½upnp.hï¿½ header file - and
 // this feature is not yet optional for compiling eMule. Thus you need to install
 // an additional more recent SDK when compiling with VS2005.
 //
